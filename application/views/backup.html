@@ -1,0 +1,85 @@
+<html lang="en">
+<head>
+	<meta charset = "UTF-8">
+	<title>Music Player</title>
+	<script src="/assets/js/jquery.js"></script>
+	<script src="/assets/js/bootstrap.js"></script>
+	<link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css">
+	<link rel="stylesheet" type="text/css" href="/assets/css/bootstrap-theme.css">
+	<script>
+	$(document).ready(function(){
+		var songs = $.get(
+			"getsongs",
+			function(output){console.log(output[0]['url']);},"json");
+		// var thesesongs= JSON.parse(songs);
+	})
+</script> 
+</head>
+<body>
+
+
+<?$projectspeed=$allsongs['0']['bpm'];?>
+<?$songspeed=$allsongs['0']['bpm'];?>
+<?$ratio=$projectspeed/$songspeed;?>
+<audio controls ID="1" preload="auto" onloadeddata="var audioPlayer = this; ;this.playbackRate = (<?=$ratio;?>);setTimeout(function() { audioPlayer.play(); }, 0 ); setTimeout(function() { audioPlayer.pause(); }, <?=$allsongs[0]['endsongafterbeatshort'];?> )">
+<source src="<?=$allsongs['0']['url'];?>" type="audio/mpeg">
+</source>
+</audio>
+
+<?$lastend=0?>
+<?for($i=1;$i<6;$i++){?>
+
+
+<!-- looping 2nd song to first songs tempo-->
+<?$songspeed=$allsongs[$i]['bpm'];
+$projectspeed=$allsongs[$i-1]['bpm'];
+$ratio=round($projectspeed/$songspeed,2);
+if($ratio<1.15 && $ratio>0.85){
+$effectneeded=false;
+if($i-1==0){$startsong=0;}
+else{$startsong=$allsongs[$i-1]['startsong1'];}?>
+
+<? if(($lastend+$allsongs[$i-1]['endsongshort'])<($lastend+$allsongs[$i-1]['endsongafterbeatshort']-$startsong)){ ?><audio ID="<?=$i+1?> loop" controls="controls" preload="auto" onloadeddata="var audioPlayer = this; this.volume=0.6; this.playbackRate = (<?=$ratio;?>);setTimeout(function() { audioPlayer.play(); }, <?=$lastend+$allsongs[$i-1]['endsongshort']?> ); setTimeout(function() { audioPlayer.pause(); }, <?=$lastend+$allsongs[$i-1]['endsongafterbeatshort']-$startsong;?> )">
+<source src="<?=$allsongs[$i]['loop'];?>" type="audio/mpeg">
+</source>
+</audio>
+<? } ?>
+<audio ID="effectbass" controls="controls" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, <?=$lastend+$allsongs[$i-1]['endsongafterbeatshort']-$startsong-594;?> )">
+<source src="/assets/effects/bassdrop.mp3" type="audio/mpeg">
+</source>
+</audio>
+
+<br>
+<?}else{$effectneeded=true;}?>
+<!-- Playing 2nd song at regular tempo -->
+<!-- -startsong1+endoffset -->
+<?
+if($i-1==0){$lastend+=($allsongs[$i-1]['endsongafterbeatshort']);}
+else{$lastend+=($allsongs[$i-1]['endsongafterbeatshort']-$allsongs[$i-1]['startsong1']);};
+if($effectneeded){?>
+
+<audio ID="effect" controls="controls" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, <?=$lastend-5763?> )">
+<source src="/assets/effects/heat2.mp3" type="audio/mpeg">
+</source>
+</audio>
+
+<?}
+$projectspeed=$allsongs[$i]['bpm'];
+$songspeed=$allsongs[$i]['bpm'];
+$ratio=$projectspeed/$songspeed;
+$currenttimemilli=($allsongs[$i]['startsong1']-$allsongs[$i]['beginoffset']);
+$currenttimeseconds=($currenttimemilli)/1000;?>
+
+<audio ID="<?=$i+1?>" controls="controls" preload="auto" onloadeddata="var audioPlayer = this; this.currentTime=(<?=$currenttimeseconds;?>); setTimeout(function() { audioPlayer.play(); }, <?=$lastend-$allsongs[$i]['beginoffset']?> ); setTimeout(function() { audioPlayer.pause(); }, <?=($lastend+$allsongs[$i]['endsongafterbeatshort']-$currenttimemilli-$allsongs[$i]['beginoffset']);?> )">
+<source src="<?=$allsongs[$i]['url'];?>" type="audio/mpeg">
+</source>
+</audio>
+<?}?>
+
+
+
+
+
+<script>
+</script>
+</body>
