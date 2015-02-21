@@ -55,6 +55,7 @@
 				clearInterval(intervals[i]);
 				intervals.shift();
 			}
+			clearInterval(interval1);
 			if(audio){audio.pause()};
 			if(audio2){audio2.pause()};
 			if(audio3){audio3.pause()};
@@ -67,6 +68,7 @@
 				{clearTimeout(timeouts[i]);}
 			for(var i=0;i<intervals.length;i++){
 			clearInterval(intervals[i]);}
+			clearInterval(interval1);
 			if(audio){audio.pause()};
 			if(audio2){audio2.pause()};
 			if(audio3){audio3.pause()};
@@ -81,6 +83,7 @@
 				{clearTimeout(timeouts[i]);}
 			for(var i=0;i<intervals.length;i++){
 			clearInterval(intervals[i]);}
+			clearInterval(interval1);
 			if(audio){audio.pause()};
 			if(audio2){audio2.pause()};
 			if(audio3){audio3.pause()};
@@ -96,6 +99,7 @@
 				{clearTimeout(timeouts[i]);}
 			for(var i=0;i<intervals.length;i++){
 			clearInterval(intervals[i]);}
+			clearInterval(interval1);
 			audio.pause();
 			audio2.pause();
 			audio3.pause();
@@ -108,7 +112,7 @@
 			StartSong(currentSong,pausetime,routesong);
 			pausetime=0;
 		});
-		StartSong(0,45,"getsongs");
+		StartSong(0,0,"getsongs");
 
 function StartSong(i,time,route){
 	routesong=route;
@@ -168,7 +172,7 @@ function playLoop(audiovar,time,endtime,i,output,type){
 			var rate= output[i-1]['bpm']/output[i]['bpm'];
 			audio2 = new Audio(output[i]['loop']);
 			audio2.playbackRate=rate;
-			audio2.volume=0.8;
+			audio2.volume=0.6;
 			audio2.play();
 			stopinterval="yes";
 			}
@@ -184,7 +188,7 @@ function stopCurrent(audiovar,endtime,i,output){
 		var num=audiovar.currentTime; 
 		num=num*1000;
 		num=Math.floor(num);
-		if(output[i+1] && num>endtime-parseInt(output[i+1]['beginoffset'])-20  && ran2===1){
+		if(output[i+1] && num>endtime-parseInt(output[i+1]['beginoffset'])-120  && ran2===1){
 			playnext(i+1,output);
 			ran2="yes";
 		}
@@ -226,6 +230,7 @@ function playnext(i,output){
 				playtype="notstart"; 
 				unselectAll(output);
 				var id= output[i]['ID'];
+				//console.log((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset'])));
 				var element=document.getElementById(id);
 				element.setAttribute("class","selected");
 				audio3.currentTime=((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset']))/1000); 
