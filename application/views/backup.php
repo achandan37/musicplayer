@@ -18,6 +18,15 @@
 		margin-left: 1px;
 		text-align: center;
 		}
+	.selected
+		{
+		background-image: linear-gradient(to bottom, #ffffff 0%, #e0e0e0 100%);
+		border-radius:6px;
+		}
+	.notselected
+		{
+		background-color: white;
+		}
 	</style>
 	<script>
 	var currentSong=-1
@@ -29,22 +38,28 @@
 		var audio2;
 		var audio3;
 		var audio4;
+		var effectheat= new Audio(['assets/effects/heat2.mp3']);
 		var timeouts= [];
 		var currentSong;
 		var playtype;
 		var pausetime;
+		var routesong;
+		var interval1;
+		var interval2;
 		var intervals=[];
 		$(document).on('click',"#next",function()
 		{	
 			for(var i=0;i<timeouts.length;i++)
 				{clearTimeout(timeouts[i]);}
 			for(var i=0;i<intervals.length;i++){
-				clearInterval(intervals[i]);}
+				clearInterval(intervals[i]);
+				intervals.shift();
+			}
 			if(audio){audio.pause()};
 			if(audio2){audio2.pause()};
 			if(audio3){audio3.pause()};
 			if(audio4){audio4.pause()};
-			StartSong(currentSong+1,0);});
+			StartSong(currentSong+1,0,routesong);});
 
 		$(document).on('click',"#previous",function()
 		{	
@@ -56,8 +71,8 @@
 			if(audio2){audio2.pause()};
 			if(audio3){audio3.pause()};
 			if(audio4){audio4.pause()};
-			if(currentSong!=0){StartSong(currentSong-1,0);}
-			else if(currentSong=0){StartSong(0,0)}
+			if(currentSong!=0){StartSong(currentSong-1,0,routesong);}
+			else if(currentSong=0){StartSong(0,0,routesong)}
 		});
 
 		$(document).on('click',"#pause",function()
@@ -72,6 +87,7 @@
 			if(audio4){audio4.pause()};
 			if(playtype==="start"){pausetime=audio.currentTime;}
 			else if(playtype==="notstart"){pausetime=audio3.currentTime;}
+			console.log(pausetime);
 		});
 
 		$(document).on('click',"#stop",function()
@@ -89,13 +105,15 @@
 
 		$(document).on('click',"#play",function()
 		{
-			StartSong(currentSong,pausetime);
+			StartSong(currentSong,pausetime,routesong);
 			pausetime=0;
 		});
-		StartSong(0,47);
+		StartSong(0,45,"getsongs");
 
-function StartSong(i,time){$.get(
-	"getsongs",
+function StartSong(i,time,route){
+	routesong=route;
+	$.get(
+	route,
 	function(output){
 		{
 		playtype="start";
@@ -107,13 +125,17 @@ function StartSong(i,time){$.get(
 		audio4 = new Audio(output[i]['url']);
 		audio.currentTime=time;
 		audio.play();
+		unselectAll(output);
+		var id= output[i]['ID'];
+		var element=document.getElementById(id);
+		element.setAttribute("class","selected");
 		$("#songname").fadeOut(500,function(){
 				$("#songname").html(output[i]['songname']).fadeIn(500)});
 				$("#artist").fadeOut(500, function(){
 				$("#artist").html(output[i]['artist']).fadeIn(500)});
 		if(output[i+1]){var rate= output[i]['bpm']/output[i+1]['bpm'];
 		
-		if(rate<1.15 || rate>0.85){
+		if(rate<1.15 && rate>0.85){
 		playLoop(audio,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');}
 	}
 		stopCurrent(audio,parseInt(output[i]['endsongafterbeatshort']),i,output);
@@ -123,112 +145,107 @@ function StartSong(i,time){$.get(
 	,"json");}
 
 
+function unselectAll(output){
+	for (var everysong=0;everysong<output.length;everysong++)
+	{
+		var id= output[everysong]['ID'];
+		var element=document.getElementById(id);
+		element.setAttribute("class","notselected");
+	}
+}
+
 function playLoop(audiovar,time,endtime,i,output,type){
-	time=time-100;
 	var ran=1;
 	var stopinterval=1;
-	intervals.push(setInterval(function(){
+	inverval1=setInterval(function(){
+
 		var num=audiovar.currentTime; 
 		num=num*1000;
 		num=Math.floor(num);
-		if(num>time-20 && num<time+20 && ran===1){
+		if(num>time-100 && ran===1){
+			console.log("hello");
 			ran="yes";
 			var rate= output[i-1]['bpm']/output[i]['bpm'];
-			audio2 = new Audio(output[i][type]);
+			audio2 = new Audio(output[i]['loop']);
 			audio2.playbackRate=rate;
+			audio2.volume=0.8;
 			audio2.play();
 			stopinterval="yes";
 			}
-		},.01))
+		},.01)
 }
 
-function nextReady(audiovar,time,endtime,i,output,type){
-	time=time-100;
+function stopCurrent(audiovar,endtime,i,output){
+	var stopinterval2=1;
 	var ran=1;
-	var stopinterval=1;
-	// while(stopinterval===1){
+	var ran2=1;
+	var ran3=1;
 	intervals.push(setInterval(function(){
 		var num=audiovar.currentTime; 
 		num=num*1000;
 		num=Math.floor(num);
-		if(num>time-20 && num<time+20 && ran===1){
-			ran="yes";
-			playnext(i,endtime-time);
-			}
-		},.01))
-}
-
-
-
-
-
-// }
-
-function stopCurrent(audiovar,endtime,i,output){
-	time=endtime-100;
-	var stopinterval2=1;
-	var ran=1;
-	var ran2=1;
-	intervals.push( setInterval(function(){
-		var num=audiovar.currentTime; 
-		// num=num.toFixed();
-		num=num*1000;
-		num=Math.floor(num);
-		if(num>endtime-5000 && num<endtime-4980 && ran2===1){
-			for(var z=0;z<intervals.length-1;z++){
-			clearInterval(intervals[z]);
-			}
-			playnext(i+1,5000);
+		if(output[i+1] && num>endtime-parseInt(output[i+1]['beginoffset'])-20  && ran2===1){
+			playnext(i+1,output);
 			ran2="yes";
 		}
-		if(num>endtime-20 && num<endtime+20 && ran===1){
-			for(var x=intervals.length-3;x>=0;x--){
-				clearInterval(intervals[x]);	
+		
+		if(num>endtime-5739 && ran3===1)
+		{
+			effectheat.play();
+			ran3="yes";
+		}
+
+
+		if(num>endtime-20 && ran===1){
+			for(var z=0;z<intervals.length;z++){
+			clearInterval(intervals[z]);
+			intervals.shift();
 			}
+			audio2.pause();
+			clearInterval(interval1);
+			console.log(endtime);
 			ran="yes";
 			audiovar.pause();
-			audio2.pause();
+			
 			audio4.pause();
 			stopinterval="yes";
+
 			}
 		},.01))
-	setInterval(function(){if(stopinterval2==="yes"){clearInterval(interval2);}},500);
 }
 			
-function playnext(i,timer){
-			$.get(
-			"getsongs",
-			function(output){
-				{
+function playnext(i,output){
+			
 				currentSong=i;
 
 				audio3 = new Audio(output[i]['url']);
-				audio3.volume=0;
+				$("#songname").fadeOut(500,function(){
+					$("#songname").html(output[i]['songname']).fadeIn(500)});
+					$("#artist").fadeOut(500, function(){
+					$("#artist").html(output[i]['artist']).fadeIn(500)});
+				playtype="notstart"; 
+				unselectAll(output);
+				var id= output[i]['ID'];
+				var element=document.getElementById(id);
+				element.setAttribute("class","selected");
+				audio3.currentTime=((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset']))/1000); 
 				audio3.play();
 
 				if(output[i+1]){
 				var rate= output[i]['bpm']/output[i+1]['bpm'];
-				if(rate<1.15 || rate>0.85){
-				playLoop(audio3,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');
-				}}
-				stopCurrent(audio3,parseInt(output[i]['endsongafterbeatshort']),i,output);
+				if(rate<1.15 && rate>0.85){
+				setTimeout(function(){stopCurrent(audio3,parseInt(output[i]['endsongafterbeatshort']),i,output)},parseInt(output[i]['beginoffset'])+1000);
+				setTimeout(function(){playLoop(audio3,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');
+				},parseInt(output[i]['beginoffset'])+2000)}}
 
-
-				// var audio4 = new Audio(output[i+1]['loop']);
-				// audio4.playbackRate=rate;
-				// audio4.volume=0;
-				timeouts.push(setTimeout(function() { 
-					$("#songname").fadeOut(500,function(){
-					$("#songname").html(output[i]['songname']).fadeIn(500)});
-					$("#artist").fadeOut(500, function(){
-					$("#artist").html(output[i]['artist']).fadeIn(500)});
-					playtype="notstart"; 
-					audio3.pause();
-					audio3.volume=1.0;
-					audio3.currentTime=((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset']))/1000); 
-					audio3.play();}, (parseInt(timer)-parseInt(output[i]['beginoffset']))
-					))
-	}},"json");}
+				// timeouts.push(setTimeout(function() { 
+					
+				// 	audio3.pause();
+				// 	audio3.volume=1.0;
+				// 	audio3.currentTime=((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset']))/1000); 
+				// 	audio3.play();}, (parseInt(timer)-parseInt(output[i]['beginoffset']))
+				// 	))
+	}
 })
 
 
@@ -271,31 +288,7 @@ function playnext(i,timer){
 		  	<div class="col-md-10"><div class="window"><span id="songname"></span><br><span id="artist"></span></div></div>
 		  	<div class="col-md-1 col-md-offset-2"></div>
 		</div>
-		<table class="table">
-			    <thead>
-			        <tr>
-			          <th>Song #</th>
-			          <th>Name</th>
-			          <th>Artist</th>
-			          <th>Language</th>
-			          <th>Genre</th>
-			          <th>Mood</th>
-			        </tr>
-			    </thead>
-			    <tbody id = "songdata">
-			    	<? $i=1; foreach($allsongs as $eachsong){ ?>
-			    		<tr id="<?=$eachsong['ID']?>">
-            				<td><?=$i?></td>
-				            <td><?=$eachsong['songname']?></td>
-				            <td><?=$eachsong['artist']?></td>
-				            <td><?=$eachsong['language']?></td>
-				            <td><?=$eachsong['genre']?></td>
-				            <td><?=$eachsong['mood']?></td>
-        				</tr>
-        				<?$i+=1;}?>
-			    </tbody>
 
-		</table>
 	</div>
 
 
