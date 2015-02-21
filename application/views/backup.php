@@ -135,7 +135,7 @@ function StartSong(i,time,route){
 				$("#artist").html(output[i]['artist']).fadeIn(500)});
 		if(output[i+1]){var rate= output[i]['bpm']/output[i+1]['bpm'];
 		
-		if(rate<1.15 && rate>0.85){
+		if(rate<1.20 && rate>0.80){
 		playLoop(audio,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');}
 	}
 		stopCurrent(audio,parseInt(output[i]['endsongafterbeatshort']),i,output);
@@ -233,18 +233,15 @@ function playnext(i,output){
 
 				if(output[i+1]){
 				var rate= output[i]['bpm']/output[i+1]['bpm'];
-				if(rate<1.15 && rate>0.85){
+				if(rate<1.20 && rate>0.80){
+				setTimeout(function()
+				{
+					playLoop(audio3,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');
+				},parseInt(output[i]['beginoffset'])+1000)}
 				setTimeout(function(){stopCurrent(audio3,parseInt(output[i]['endsongafterbeatshort']),i,output)},parseInt(output[i]['beginoffset'])+1000);
-				setTimeout(function(){playLoop(audio3,parseInt(output[i]['endsongshort']),parseInt(output[i]['endsongafterbeatshort']),i+1,output,'loop');
-				},parseInt(output[i]['beginoffset'])+2000)}}
+			}
 
-				// timeouts.push(setTimeout(function() { 
-					
-				// 	audio3.pause();
-				// 	audio3.volume=1.0;
-				// 	audio3.currentTime=((parseInt(output[i]['startsong1'])-parseInt(output[i]['beginoffset']))/1000); 
-				// 	audio3.play();}, (parseInt(timer)-parseInt(output[i]['beginoffset']))
-				// 	))
+
 	}
 })
 
